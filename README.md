@@ -13,6 +13,7 @@ Latest Update: 2025-04-29
 ## User dependencies:
 - Windows 7/8/10/11
 - putty
+
 Putty must be added to the user's PATH environment variable.
 
 ## Additional dependencies for developers:
