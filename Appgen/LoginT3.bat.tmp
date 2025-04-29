@@ -1,0 +1,81 @@
+@ECHO OFF
+
+REM ====================
+REM Author: Colin Doo
+REM Version: 2.10.11
+REM Replace the following lines to specify a script that can only be run at specific computer.
+REM ====================
+
+Do not run this script!
+
+:: User-info
+set rhost={}
+set rmac={}
+set rsignature={}
+:: User-info
+
+
+set user=
+set hpcpw=
+set host=
+
+for /f "delims=" %%i in ('hostname') do (set localhost=%%i)
+for /f "tokens=1,2* usebackq" %%f in (`getmac /nh`) do (set mac=%%f & goto next)
+:next
+
+if NOT %mac%==%rmac% (set autodelete=1)
+
+if NOT %localhost%==%rhost% (set autodelete=1)
+
+if DEFINED autodelete (
+  start "" /high cmd /c del /f "%~f0"
+  exit /b
+)
+
+SetLocal EnableExtensions EnableDelayedExpansion
+
+Set /P "=Password:" < Nul
+Call :PasswordInput
+goto continue
+
+:PasswordInput
+for /F skip^=1^ delims^=^ eol^= %%# in (
+'"Echo(|replace "%~f0" . /U /W"') do set "CR=%%#"
+for /F %%# In (
+'"prompt $H &For %%_ In (_) Do Rem"') do set "BS=%%#"
+set "Line="
+
+:_PasswordInput_Kbd
+set "CHR=" & For /F skip^=1^ delims^=^ eol^= %%# in (
+'Replace.exe "%~f0" . /U /W') Do Set "CHR=%%#"
+if !CHR!==!CR! echo(&goto :Eof
+if !CHR!==!BS! (if Defined Line (Set /P "=!BS! !BS!" <Nul
+set "Line=!Line:~0,-1!"
+)
+) Else (Set /P "=*" <Nul
+if !CHR!==! (set "Line=!Line!^!"
+) else Set "Line=!Line!!CHR!"
+)
+goto :_PasswordInput_Kbd
+:continue
+
+
+set NL=^
+
+
+set before=
+
+for /f "tokens=*" %%X in ('netstat -an ^| findstr <host>') do set before=!before!!NL!%%X
+
+echo eval $(Plogin '%Line%' '%rsignature%') ^&^& exec -l bash --norc ^|^| exit 103 > "%CD%\tmp.txt"
+start "" /b putty -ssh %user%@%host% -pw %hpcpw% -t -m "%CD%\tmp.txt"
+start "" /b /d "%CD%" /wait for /L %%N in () do (
+  set after=
+  for /f "tokens=*" %%Y in ('netstat -an ^| findstr <host>') do set after=!after!!NL!%%Y
+  IF "!after!" NEQ "!before!" goto:eof
+  timeout /t 1 /nobreak
+)
+
+del /f "%CD%\tmp.txt"
+
+endlocal
