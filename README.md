@@ -16,7 +16,7 @@ Latest Update: 2025-04-29
 
 Putty must be added to the user's PATH environment variable.
 
-## Additional dependencies for developers:
+## Dev dependencies:
 - shc (https://www.datsi.fi.upm.es/~frosal/)
 - B2E (https://github.com/tokyoneon/B2E)
 - Python 3.8+
